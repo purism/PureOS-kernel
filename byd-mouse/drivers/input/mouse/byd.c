@@ -58,10 +58,9 @@
  * Given the above dimensions, relative packets velocity is in multiples of
  * 1 unit / 11 milliseconds.  We use this dt to estimate distance traveled
  */
-#define BYD_DT				11
-/* Time in milliseconds used to timeout various touch events */
-#define BYD_TOUCH_TIMEOUT_MS		64
-#define BYD_TOUCH_TIMEOUT_JIFFIES	msecs_to_jiffies(BYD_TOUCH_TIMEOUT_MS)
+#define BYD_DT			11
+/* Time in jiffies used to timeout various touch events (64 ms) */
+#define BYD_TOUCH_TIMEOUT	msecs_to_jiffies(64)
 
 /* BYD commands reverse engineered from windows driver */
 
@@ -236,10 +235,10 @@ struct byd_data {
 	struct timer_list timer;
 	s32 abs_x;
 	s32 abs_y;
-	u32 last_touch_time;
-	bool btn_left  : 1;
-	bool btn_right : 1;
-	bool touch     : 1;
+	typeof(jiffies) last_touch_time;
+	bool btn_left;
+	bool btn_right;
+	bool touch;
 };
 
 static void byd_report_input(struct psmouse *psmouse)
@@ -247,12 +246,14 @@ static void byd_report_input(struct psmouse *psmouse)
 	struct byd_data *priv = psmouse->private;
 	struct input_dev *dev = psmouse->dev;
 
+	input_report_key(dev, BTN_TOUCH, priv->touch);
+	input_report_key(dev, BTN_TOOL_FINGER, priv->touch);
+
 	input_report_abs(dev, ABS_X, priv->abs_x);
 	input_report_abs(dev, ABS_Y, priv->abs_y);
 	input_report_key(dev, BTN_LEFT, priv->btn_left);
 	input_report_key(dev, BTN_RIGHT, priv->btn_right);
-	input_report_key(dev, BTN_TOUCH, priv->touch);
-	input_report_key(dev, BTN_TOOL_FINGER, priv->touch);
+
 	input_sync(dev);
 }
 
@@ -263,6 +264,11 @@ static void byd_clear_touch(unsigned long data)
 
 	serio_pause_rx(psmouse->ps2dev.serio);
 	priv->touch = false;
+
+	byd_report_input(psmouse);
+
+	serio_continue_rx(psmouse->ps2dev.serio);
+
 	/*
 	 * Move cursor back to center of pad when we lose touch - this
 	 * specifically improves user experience when moving cursor with one
@@ -270,15 +276,12 @@ static void byd_clear_touch(unsigned long data)
 	 */
 	priv->abs_x = BYD_PAD_WIDTH / 2;
 	priv->abs_y = BYD_PAD_HEIGHT / 2;
-	byd_report_input(psmouse);
-
-	serio_continue_rx(psmouse->ps2dev.serio);
 }
 
 static psmouse_ret_t byd_process_byte(struct psmouse *psmouse)
 {
 	struct byd_data *priv = psmouse->private;
-	u32 now = jiffies_to_msecs(jiffies);
+	u32 now = jiffies;
 	u8 *pkt = psmouse->packet;
 
 	if (psmouse->pktcnt > 0 && !(pkt[0] & PS2_ALWAYS_1)) {
@@ -300,7 +303,7 @@ static psmouse_ret_t byd_process_byte(struct psmouse *psmouse)
 				      (BYD_PAD_HEIGHT / 256);
 
 			/* needed to detect tap */
-			if (now - priv->last_touch_time > BYD_TOUCH_TIMEOUT_MS)
+			if (now - priv->last_touch_time > BYD_TOUCH_TIMEOUT)
 				priv->touch = true;
 		}
 		break;
@@ -335,7 +338,7 @@ static psmouse_ret_t byd_process_byte(struct psmouse *psmouse)
 	/* Reset time since last touch. */
 	if (priv->touch) {
 		priv->last_touch_time = now;
-		mod_timer(&priv->timer, jiffies + BYD_TOUCH_TIMEOUT_JIFFIES);
+		mod_timer(&priv->timer, jiffies + BYD_TOUCH_TIMEOUT);
 	}
 
 	return PSMOUSE_FULL_PACKET;
