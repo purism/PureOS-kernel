@@ -1,0 +1,52 @@
+Description: BYD touchpad driver
+ BYD touchpad mouse driver for linux kernel.
+ .
+ linux (4.3.5-1.1) unstable; urgency=medium
+ .
+   * BYD touchpad mouse driver
+Author: Richard Pospesel <richard.pospesel@puri.sm>
+
+From: Adrian Alves <adrian@puri.sm>
+Subject: BYD mouse driver
+Forwarded: not-needed
+
+--- linux-4.3.5.orig/drivers/input/mouse/Kconfig.rej
++++ linux-4.3.5/drivers/input/mouse/Kconfig.rej
+@@ -1,5 +1,5 @@
+ --- drivers/input/mouse/Kconfig	2016-02-25 21:11:31.511157682 -0300
+-+++ drivers/input/mouse/Kconfig	2016-02-25 21:15:15.413455788 -0300
+++++ drivers/input/mouse/Kconfig	2016-02-26 09:49:12.324322918 -0300
+ @@ -350,7 +359,7 @@
+  
+  config MOUSE_GPIO
+--- /dev/null
++++ linux-4.3.5/drivers/input/mouse/Kconfig.rej.orig
+@@ -0,0 +1,11 @@
++--- drivers/input/mouse/Kconfig	2016-02-25 21:11:31.511157682 -0300
+++++ drivers/input/mouse/Kconfig	2016-02-26 09:49:12.324322918 -0300
++@@ -350,7 +359,7 @@
++ 
++ config MOUSE_GPIO
++ 	tristate "GPIO mouse"
++-	depends on GPIOLIB || COMPILE_TEST
+++	depends on GPIOLIB
++ 	select INPUT_POLLDEV
++ 	help
++ 	  This driver simulates a mouse on GPIO lines of various CPUs (and some
+--- /dev/null
++++ linux-4.3.5/drivers/input/mouse/Kconfig.rej.rej
+@@ -0,0 +1,14 @@
++--- drivers/input/mouse/Kconfig.rej	2016-02-25 22:37:10.000000000 -0300
+++++ drivers/input/mouse/Kconfig.rej	1969-12-31 21:00:00.000000000 -0300
++@@ -1,11 +0,0 @@
++---- drivers/input/mouse/Kconfig	2016-02-25 21:11:31.511157682 -0300
++-+++ drivers/input/mouse/Kconfig	2016-02-25 21:15:15.413455788 -0300
++-@@ -350,7 +359,7 @@
++- 
++- config MOUSE_GPIO
++- 	tristate "GPIO mouse"
++--	depends on GPIOLIB || COMPILE_TEST
++-+	depends on GPIOLIB
++- 	select INPUT_POLLDEV
++- 	help
++- 	  This driver simulates a mouse on GPIO lines of various CPUs (and some
