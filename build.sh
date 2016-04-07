@@ -17,7 +17,7 @@ echo "Patching Kernel with BYD drivers..."
 cd linux*
 linuxdir=$(echo $PWD)
 
-cp $basedir/data/byd-mouse/drivers/input/mouse/* drivers/input/mouse/.
+cp $basedir/byd-mouse/drivers/input/mouse/* drivers/input/mouse/.
 echo "CONFIG_MOUSE_PS2_BYD=y" >> debian/config/config
 dch -a "BYD mouse driver."
 
